@@ -1,28 +1,38 @@
 const express = require("express");
+
+const workoutController = require("../controllers/workoutController");
+const { verify } = require("../auth");
+
 const router = express.Router();
 
-const {
-    addWorkout,
-    getMyWorkouts,
-    updateWorkout,
-    deleteWorkout,
-    completeWorkoutStatus
-} = require("../controllers/workout");
-const { verify } = require("../auth/auth");
+router.post(
+    "/addWorkout",
+    verify,
+    workoutController.addWorkout
+);
 
-// POST /workouts/addWorkout
-router.post("/addWorkout", verify, addWorkout);
+router.get(
+    "/getMyWorkouts",
+    verify,
+    workoutController.getMyWorkouts
+);
 
-// GET /workouts/getMyWorkouts
-router.get("/getMyWorkouts", verify, getMyWorkouts);
+router.patch(
+    "/updateWorkout",
+    verify,
+    workoutController.updateWorkout
+);
 
-// PATCH /workouts/updateWorkout/:workoutId
-router.patch("/updateWorkout/:workoutId", verify, updateWorkout);
+router.delete(
+    "/deleteWorkout",
+    verify,
+    workoutController.deleteWorkout
+);
 
-// DELETE /workouts/deleteWorkout/:workoutId
-router.delete("/deleteWorkout/:workoutId", verify, deleteWorkout);
-
-// PATCH /workouts/completeWorkoutStatus/:workoutId
-router.patch("/completeWorkoutStatus/:workoutId", verify, completeWorkoutStatus);
+router.patch(
+    "/completeWorkoutStatus",
+    verify,
+    workoutController.completeWorkoutStatus
+);
 
 module.exports = router;

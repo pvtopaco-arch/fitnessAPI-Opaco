@@ -1,83 +1,134 @@
-const bcrypt = require("bcrypt");
 const User = require("../models/User");
-const { createAccessToken } = require("../auth/auth");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-// POST /users/register
-module.exports.registerUser = async (req, res) => {
+const JWT_SECRET = process.env.JWT_SECRET || "fitnessSecret123";
+
+// REGISTER
+const register = async (req, res) => {
     try {
         const { email, password } = req.body;
 
         if (!email || !password) {
-            return res.status(400).send({ message: "Email and password are required." });
-        }
-
-        const emailFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailFormat.test(email)) {
-            return res.status(400).send({ message: "Invalid email format." });
-        }
-
-        if (password.length < 8) {
-            return res.status(400).send({ message: "Password must be at least 8 characters long." });
+            return res.status(400).send({
+                message: "Email and password are required"
+            });
         }
 
         const existingUser = await User.findOne({ email });
+
         if (existingUser) {
-            return res.status(409).send({ message: "Email already registered." });
+            return res.status(409).send({
+                message: "Email already exists"
+            });
         }
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = bcrypt.hashSync(password, 10);
 
-        await User.create({
+        const newUser = new User({
             email,
             password: hashedPassword
         });
 
-        return res.status(201).send({ message: "Registered Successfully" });
+        await newUser.save();
+
+        return res.status(201).send({
+            message: "Registered Successfully"
+        });
 
     } catch (error) {
-        return res.status(500).send({ message: "Error registering user.", error: error.message });
+        console.error("REGISTER ERROR:", error);
+
+        return res.status(500).send({
+            message: "Internal Server Error"
+        });
     }
 };
 
-// POST /users/login
-module.exports.loginUser = async (req, res) => {
+
+// LOGIN 
+const login = async (req, res) => { 
+    try { 
+        const { email, password } = req.body; 
+ 
+        if (!email || !password) { 
+            return res.status(400).send({ 
+                message: "Email and password are required" 
+            }); 
+        } 
+ 
+        const user = await User.findOne({ email }); 
+ 
+        if (!user) { 
+            return res.status(404).send({ 
+                message: "User not found" 
+            }); 
+        } 
+ 
+        const isPasswordCorrect = bcrypt.compareSync( 
+            password, 
+            user.password 
+        ); 
+ 
+        if (!isPasswordCorrect) { 
+            return res.status(401).send({ 
+                message: "Incorrect email or password" 
+            }); 
+        } 
+ 
+        const accessToken = jwt.sign( 
+            { 
+                id: user._id 
+            }, 
+            JWT_SECRET, 
+            { 
+                expiresIn: "1d" 
+            } 
+        ); 
+ 
+        return res.status(200).send({ 
+            access: accessToken, 
+            token: accessToken 
+        }); 
+ 
+    } catch (error) { 
+        console.error("LOGIN ERROR:", error); 
+ 
+        return res.status(500).send({ 
+            message: "Internal Server Error" 
+        }); 
+    } 
+};
+
+
+// GET USER DETAILS
+const getDetails = async (req, res) => {
     try {
-        const { email, password } = req.body;
+        const user = await User.findById(req.user.id)
+            .select("-password");
 
-        if (!email || !password) {
-            return res.status(400).send({ message: "Email and password are required." });
-        }
-
-        const user = await User.findOne({ email });
         if (!user) {
-            return res.status(404).send({ message: "No user found with that email." });
+            return res.status(404).send({
+                message: "User not found"
+            });
         }
 
-        const isPasswordCorrect = await bcrypt.compare(password, user.password);
-        if (!isPasswordCorrect) {
-            return res.status(401).send({ message: "Incorrect email or password." });
-        }
-
-        const token = createAccessToken(user);
-        return res.status(200).send({ access: token, token });
+        return res.status(200).send({
+            user
+        });
 
     } catch (error) {
-        return res.status(500).send({ message: "Error logging in.", error: error.message });
+        console.error("DETAILS ERROR:", error);
+
+        return res.status(500).send({
+            message: "Internal Server Error"
+        });
     }
 };
 
-// GET /users/details
-module.exports.getProfile = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select("-password");
 
-        if (!user) {
-            return res.status(404).send({ message: "User not found." });
-        }
-
-        return res.status(200).send({ user });
-
-    } catch (error) {
-        return res.status(500).send({ message: "Error retrieving user details.", error: error.message });
-    }
+module.exports = {
+    register,
+    login,
+    getDetails
 };

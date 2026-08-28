@@ -1,12 +1,11 @@
 {
-    "endpoints": {
-        "login": "https://fitnessapi-opaco-1.onrender.com/users/login",
-        "register": "https://fitnessapi-opaco-1.onrender.com/users/register",
-        "details": "https://fitnessapi-opaco-1.onrender.com/users/details",
-        "addWorkout": "https://fitnessapi-opaco-1.onrender.com/workouts/addWorkout",
-        "getMyWorkouts": "https://fitnessapi-opaco-1.onrender.com/workouts/getMyWorkouts",
-        "updateWorkout": "https://fitnessapi-opaco-1.onrender.com/workouts/updateWorkout",
-        "deleteWorkout": "https://fitnessapi-opaco-1.onrender.com/workouts/deleteWorkout",
-        "completeWorkoutStatus": "https://fitnessapi-opaco-1.onrender.com/workouts/completeWorkoutStatus"
-    }
+  "endpoints": {
+    "login": "/login",
+    "register": "/register",
+    "addWorkout": "/addWorkout",
+    "getMyWorkouts": "/getMyWorkouts",
+    "updateWorkout": "/updateWorkout",
+    "deleteWorkout": "/deleteWorkout",
+    "completeWorkoutStatus": "/completeWorkoutStatus"
+  }
 }
