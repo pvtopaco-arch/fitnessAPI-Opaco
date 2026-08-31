@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = process.env.JWT_SECRET || "fitnessSecret123";
+const JWT_SECRET = process.env.JWT_SECRET_KEY || "fitlogSecret123";
 
 const verify = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -21,9 +21,7 @@ const verify = (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-
         req.user = decoded;
-
         next();
     } catch (error) {
         return res.status(401).send({
@@ -33,5 +31,6 @@ const verify = (req, res, next) => {
 };
 
 module.exports = {
-    verify
+    verify,
+    JWT_SECRET
 };

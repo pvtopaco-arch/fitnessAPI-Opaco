@@ -1,38 +1,49 @@
-console.log("Hello!");
-
-require("dotenv").config();
-
 const express = require("express");
 const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 
-const workoutRoutes = require("./routes/workout");
 const userRoutes = require("./routes/user");
+const workoutRoutes = require("./routes/workout");
 
 const app = express();
 
-app.use(express.json());
+app.disable("etag");
 
-// Routes Middleware
-app.use("/workouts", workoutRoutes);
-app.use("/users", userRoutes);
-
-// MongoDB Connection
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => {
-    console.log("Connected to MongoDB");
-
-    if (require.main === module) {
-      app.listen(process.env.PORT || 4000, () => {
-        console.log(`API is now online on port ${process.env.PORT || 4000}`);
-      });
-    }
-  })
-  .catch((error) => {
-    console.log("MongoDB connection error:", error);
-  });
-
-module.exports = {
-  app,
-  mongoose,
+const corsOptions = {
+  origin: [
+    "https://fitnessapp-vue.vercel.app",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
 };
+
+app.use(cors(corsOptions));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+mongoose.connect(process.env.MONGODB_STRING);
+
+mongoose.connection.once("open", () => {
+  console.log("Connected to MongoDB");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.log(err);
+});
+
+app.use("/users", userRoutes);
+app.use("/workouts", workoutRoutes);
+
+const PORT = process.env.PORT || 4000;
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`API is running on port ${PORT}`);
+  });
+}
+
+module.exports = { app, mongoose };
