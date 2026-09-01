@@ -1,49 +1,47 @@
+require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
-
 const userRoutes = require("./routes/user");
-const workoutRoutes = require("./routes/workout");
+const movieRoutes = require("./routes/movie");
 
 const app = express();
 
-app.disable("etag");
-
-const corsOptions = {
+app.use(cors({
   origin: [
-    "https://fitnessapp-vue.vercel.app",
-    "http://localhost:5173"
+    "http://localhost:5173",
+    "https://moviesapp-vue.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
-};
-
-app.use(cors(corsOptions));
+}));
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGODB_STRING);
-
-mongoose.connection.once("open", () => {
-  console.log("Connected to MongoDB");
-});
-
-mongoose.connection.on("error", (err) => {
-  console.log(err);
-});
-
+// ROUTES
 app.use("/users", userRoutes);
-app.use("/workouts", workoutRoutes);
+app.use("/movies", movieRoutes);
 
-const PORT = process.env.PORT || 4000;
+// MONGODB CONNECTION
+mongoose.connect(process.env.MONGODB_URI)
+    .then(() => {
+        console.log("Connected to MongoDB");
+        if (require.main === module) {
+            app.listen(process.env.PORT || 4000, () => {
+                console.log(
+                    `API is now online on port ${
+                        process.env.PORT || 4000
+                    }`
+                );
+            });
+        }
+    })
+    .catch(error => {
+        console.log("MongoDB connection error:", error);
+    });
 
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`API is running on port ${PORT}`);
-  });
-}
-
-module.exports = { app, mongoose };
+module.exports = {
+    app,
+    mongoose
+};
