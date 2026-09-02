@@ -3,14 +3,14 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const userRoutes = require("./routes/user");
-const movieRoutes = require("./routes/movie");
+const workoutRoutes = require("./routes/workout");
 
 const app = express();
 
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://moviesapp-vue.vercel.app"
+    "https://fitnessapp-vue.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -21,7 +21,7 @@ app.use(express.json());
 
 // ROUTES
 app.use("/users", userRoutes);
-app.use("/movies", movieRoutes);
+app.use("/workouts", workoutRoutes);
 
 // MONGODB CONNECTION
 mongoose.connect(process.env.MONGODB_URI)
